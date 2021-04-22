@@ -207,7 +207,17 @@ namespace Gatekeeper.Modules
         {
             if (user == null)
             {
-                await ReplyAsync("Specify a user!");
+                await ReplyAsync(embed: new EmbedBuilder
+                {
+                    Title = "Error",
+                    Color = Color.Red,
+                    Description = "ERROR: Please specify a user to kick!",
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = "Gatekeeper",
+                        IconUrl = "https://i.imgur.com/rVB8XsP.png"
+                    }
+                }.Build());
                 return;
             }
 
@@ -448,8 +458,24 @@ namespace Gatekeeper.Modules
 
         [RequireUserPermission(GuildPermission.KickMembers)]
         [Command("unmute")]
-        public async Task Unmute(SocketGuildUser user)
+        public async Task Unmute(SocketGuildUser user = null)
         {
+            if (user == null)
+            {
+                await ReplyAsync(embed: new EmbedBuilder
+                {
+                    Title = "Error",
+                    Color = Color.Red,
+                    Description = "ERROR: Please specify a user to unmute!",
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = "Gatekeeper",
+                        IconUrl = "https://i.imgur.com/rVB8XsP.png"
+                    }
+                }.Build());
+                return;
+            }
+            
             var role = Context.Guild.Roles.FirstOrDefault(x => x.Id == 833192988300804177);
             if (role != null)
             {
