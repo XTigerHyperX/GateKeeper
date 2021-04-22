@@ -387,7 +387,7 @@ namespace Gatekeeper.Modules
                         new EmbedFieldBuilder
                         {
                             Name = "Duration",
-                            Value = minutes == 0 ? minutes.ToString() : "Unspecified",
+                            Value = minutes == 0 ? "Unspecified" : minutes.ToString(),
                             IsInline = true
                         },
                         new EmbedFieldBuilder
@@ -420,7 +420,7 @@ namespace Gatekeeper.Modules
                         new EmbedFieldBuilder
                         {
                             Name = "Duration",
-                            Value = minutes == 0 ? minutes.ToString() : "Unspecified",
+                            Value = minutes == 0 ? "Unspecified" : minutes.ToString(),
                             IsInline = true
                         },
                         new EmbedFieldBuilder
