@@ -1,9 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Discord;
 using Discord.Commands;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using src.Services;
 
 namespace src.Modules
 {
@@ -115,29 +117,62 @@ namespace src.Modules
         #endregion
 
         
-        [RequireUserPermission(GuildPermission.MuteMembers, ErrorMessage = "No")]
+        [RequireUserPermission(GuildPermission.KickMembers , ErrorMessage = "I Can't do that")]
         [Command("mute")]
-        public async Task mute(SocketGuildUser user = null , [Remainder] string reason = null)
+        public async Task mute(SocketGuildUser user = null , int? minutes = null ,[Remainder] string reason = null)
         {
+            if (Context.Message.MentionedUsers.Any())
+            {
+                user = (Context.Message.MentionedUsers.First() as SocketGuildUser);
+            }
             if (user == null)
             {
-                await ReplyAsync("who do i mute ? <:Gatekeeper:833756060032303174>");
-                return;
+                await ReplyAsync("Specify who to mute <:Gatekeeper:833756060032303174> ");
             }
-            if (reason == null) reason = "Non Specified";
-
-            if (user.Roles.Any(r => r.Name == "Moderators"))
+            if (user.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
             {
-                await ReplyAsync($"I Won't do that");
+                await Context.Channel.SendMessageAsync("I Can't do that");
+                return;
+            }
+            var role = (Context.Guild as IGuild).Roles.FirstOrDefault(x => x.Id == 833192988300804177);
+            if (role.Position > Context.Guild.CurrentUser.Hierarchy)
+            {
+                await Context.Channel.SendMessageAsync("The user have a higher position than me");
+                return;
+            }
+            if (user.Roles.Contains(role))
+            {
+                await Context.Channel.SendMessageAsync("This user is already muted");
                 return;
             }
 
-            await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault(x => x.Id == 833192988300804177));
-            await ReplyAsync($"{user.Username}{user.Discriminator} was muted");
-            ITextChannel gatelog = Context.Client.GetChannel(833395565214957578) as ITextChannel;
-            await gatelog.SendMessageAsync(
-                $"{user.Username}{user.Discriminator} ({user.Id}) was **muted** **by** {Context.User.Username}{Context.User.Discriminator}");
+            if (reason == null) reason = "Non Specified";
+            if (minutes != null)
+            {
+                //await role.ModifyAsync(x => x.Position = Context.Guild.CurrentUser.Hierarchy);
+                Startup.Mutes.Add(new Mute
+                {
+                    Guild = Context.Guild, user = user, End = DateTime.Now + TimeSpan.FromMinutes((int) minutes),
+                    role = role
+                });
+                await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault(x => x.Id == 833192988300804177));
+                await ReplyAsync(
+                    $"{user.Username}{user.Discriminator} **was muted** **Duration : **{minutes} minutes **Reason** {reason}");
+                ITextChannel gatelog = Context.Client.GetChannel(833395565214957578) as ITextChannel;
+                await gatelog.SendMessageAsync(
+                    $"{user.Username}#{user.Discriminator} ({user.Id}) was **muted** for {minutes} minutes **by** {Context.User.Username}{Context.User.Discriminator} **Reason : {reason}");
             }
+            else if (minutes == null)
+            {
+                await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault(x => x.Id == 833192988300804177));
+                await ReplyAsync(
+                    $"{user.Username}#{user.Discriminator} **was muted** **for non specified time :** **Reason :** {reason}");
+                ITextChannel gatelog = Context.Client.GetChannel(833395565214957578) as ITextChannel;
+                await gatelog.SendMessageAsync(
+                    $"{user.Username}#{user.Discriminator} ({user.Id}) **was muted** for non specified time : **by** {Context.User.Username}#{Context.User.Discriminator} **Reason :** {reason}");
+            }
+        }
+        /*
 
         [RequireUserPermission(GuildPermission.MuteMembers,
             ErrorMessage = "No")]
@@ -157,5 +192,63 @@ namespace src.Modules
                 await gatelog.SendMessageAsync(
                     $"{user.Username}{user.Discriminator} ({user.Id}) was **unmuted** **by** {Context.User.Username}{Context.User.Discriminator}");
         }
+        */
+        [RequireUserPermission(GuildPermission.KickMembers)]
+        [Command("unmute")]
+        public async Task unmute(SocketGuildUser user)
+        {
+            var role = (Context.Guild as IGuild).Roles.FirstOrDefault(x => x.Id == 833192988300804177);
+            if (role == null)
+            {
+                await Context.Channel.SendMessageAsync("The user is not muted");
+                return;
+            }
+            if (role.Position > Context.Guild.CurrentUser.Hierarchy)
+            {
+                await Context.Channel.SendMessageAsync("The user have a higher position than me");
+                return;
+            }
+            if (!user.Roles.Contains(role))
+            {
+                await Context.Channel.SendMessageAsync("This user is not muted");
+                return;
+            }
+            //await role.ModifyAsync(x => x.Position = Context.Guild.CurrentUser.Hierarchy);
+            await user.RemoveRoleAsync(role);
+            await ReplyAsync($"{user.Username}{user.Discriminator} **was unmuted**");
+            ITextChannel gatelog = Context.Client.GetChannel(833395565214957578) as ITextChannel;
+            await gatelog.SendMessageAsync(
+                $"{user.Username}{user.Discriminator} ({user.Id}) was **unmuted** **by** {Context.User.Username}{Context.User.Discriminator}");
+        }
+
+        [RequireUserPermission(GuildPermission.Administrator)]
+        [Command("alive?")]
+        public async Task unmute()
+        {
+            await ReplyAsync("Yes i'm alive ! <:Gatekeeper:833756060032303174> ");
+        }
+
+        [RequireUserPermission(GuildPermission.SendMessages)]
+        [Command("help")]
+        public async Task help()
+        {
+            var Embed = new EmbedBuilder()
+                .WithTitle("Help")
+                .WithColor(23, 56, 94)
+                .WithDescription(
+                    "The Prefix for Gatekeeper is `.` \n " +
+                    "**ban** \n bye <:PepeHappy:833198633025273856> \n **unban** \n unbans user \n **kick** \n kicks user" +
+                    "\n **mute** \n provide user and add minutes and reason if needed \n **unmute** \n unmutes user " +
+                    "\n **alive** \n to check bot presence \n **rules** \n my favorite part <:Gatekeeper:833756060032303174> \n **help** \n provides help commands")
+                .WithFooter(footer =>
+                {
+                    footer
+                        .WithText("Gatekeeper")
+                        .WithIconUrl("https://imgur.com/rVB8XsP.png");
+                });
+            Embed embd = Embed.Build();
+            ReplyAsync(embed: embd);
+        }
+        
     }
 }

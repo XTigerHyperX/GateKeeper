@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using src.Modules;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +17,48 @@ namespace src.Services
         private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
         private readonly JsonConfig _config;
+        public static List<Mute> Mutes = new List<Mute>();
 
+        private async Task MuteHandler()
+        {
+            List<Mute> Remove = new List<Mute>();
+            foreach (var mute in Mutes)
+            {
+                if (DateTime.Now < mute.End)
+                    continue;
+                
+                var guild = _discord.GetGuild(mute.Guild.Id);
+                
+                if (guild.GetRole(mute.role.Id) == null)
+                {
+                    Remove.Add(mute);
+                    continue;
+                }
+                var role = guild.GetRole(mute.role.Id);
+                    
+                if (guild.GetUser(mute.user.Id) == null)
+                {
+                    Remove.Add(mute);
+                    continue;
+                }
+                var user = guild.GetUser(mute.user.Id);
+
+                if (role.Position > guild.CurrentUser.Hierarchy)
+                {
+                    Remove.Add(mute);
+                    continue;
+                }
+                
+                await user.RemoveRoleAsync(mute.role);
+                    Remove.Add(mute);
+                    ITextChannel gatelog = _discord.GetChannel(833395565214957578) as ITextChannel;
+                    await gatelog.SendMessageAsync(
+                        $"{mute.user.Username}{mute.user.Discriminator} ({user.Id}) was **unmuted** **by Gatekeeper** ");
+            }
+            Mutes = Mutes.Except(Remove).ToList();
+            await Task.Delay(TimeSpan.FromSeconds(10));
+            await MuteHandler();
+        }
         public Startup(IServiceProvider provider, DiscordSocketClient discord, CommandService commands, JsonConfig config)
         {
             _provider = provider;
@@ -26,8 +68,9 @@ namespace src.Services
 
             _discord.Ready += OnDiscordReady;
             _discord.MessageReceived += OnDiscordMessageReceived;
+            var newtask = new Task(async () => await MuteHandler());
+            newtask.Start();
         }
-
         public async Task StartAsync()
         {
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
@@ -47,17 +90,14 @@ namespace src.Services
                         noRoleCount++;
                 }
             }
-
             if (noRoleCount == 0)
             {
                 await _discord.SetGameAsync($"the door", null, ActivityType.Watching);
             }
             else 
                 await _discord.SetGameAsync($"{noRoleCount} users' mind", null, (ActivityType)5);
-
             await _discord.SetStatusAsync(UserStatus.DoNotDisturb);
         }
-
         private async Task OnDiscordMessageReceived(SocketMessage arg)
         {
             if ((arg.Channel as SocketGuildChannel).Guild.Id == _config.ServerId && arg.Channel.Id == _config.Verifier.ChannelId && !arg.Author.IsBot)
@@ -103,21 +143,24 @@ namespace src.Services
                     _config.Save();
                 }
             }
+            // Auto Mute when tagging specific users 
             /*
-            else
+            else if (arg.MentionedUsers.Any() && !arg.Author.IsBot)
             {
-                if (!(arg.Author as SocketGuildUser).Roles.Any(r => r.Name == "Moderators") ||
-                    arg.Content.ToLower() == ".rules")
+                var user = (arg.MentionedUsers.First() as SocketGuildUser);
+                var auther = (arg.Author as SocketGuildUser);
+                if (user.Roles.Any(r => r.Name == "NoPing") && auther.Hierarchy < user.Hierarchy && !auther.IsBot)
                 {
-                    if ((arg.Content.StartsWith(".") || arg.Content.StartsWith("\\")) &&
-                        arg.Content.ToLower() != ".rules")
+                    await auther.AddRoleAsync(auther.Guild.Roles.FirstOrDefault(x => x.Id == 833192988300804177));
+                    if ((arg.Channel as SocketGuildChannel).Guild.GetTextChannel(833181135236366346) is SocketTextChannel v)
                     {
-                        if ((arg.Channel as SocketGuildChannel).Guild.GetTextChannel(833181135236366346) is
-                            SocketTextChannel c)
-                        {
-                            await c.DeleteMessageAsync(arg);
-                        }
+                        await v.SendMessageAsync(
+                            $"{arg.Author.Username}{arg.Author.Discriminator} **was muted** **Duration : **{5} minutes **Reason for pinging**");
                     }
+                    
+                    ITextChannel gatelog = _discord.GetChannel(833395565214957578) as ITextChannel;
+                    await gatelog.SendMessageAsync(
+                        $"{arg.Author.Username}{arg.Author.Discriminator} **was muted** **Duration : **{5} minutes **Reason for pinging**");
                 }
             }
             */
