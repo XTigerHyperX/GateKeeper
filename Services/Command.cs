@@ -1,9 +1,9 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Discord.Commands;
+using Discord.WebSocket;
 
-namespace src.Services
+namespace Gatekeeper.Services
 {
     public class Command
     {
@@ -29,7 +29,7 @@ namespace src.Services
 
             var context = new SocketCommandContext(_discord, msg);
 
-            int argPos = 0;
+            var argPos = 0;
             if (msg.HasStringPrefix(_config.BotPrefix, ref argPos) || msg.HasMentionPrefix(_discord.CurrentUser, ref argPos))
             {
                 var result = await _commands.ExecuteAsync(context, argPos, _provider);

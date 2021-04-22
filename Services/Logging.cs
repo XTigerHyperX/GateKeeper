@@ -1,11 +1,11 @@
-﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
-namespace src.Services
+namespace Gatekeeper.Services
 {
     public class Logging
     {
@@ -28,7 +28,7 @@ namespace src.Services
                 File.Create(Program.LogFile).Dispose();
             }
 
-            string message = string.Format("{0} [{1}] {2}: {3}\n", DateTime.UtcNow.ToString("MM/dd/yyyy HH:mm:ss"), msg.Severity.ToString(), msg.Source, msg.Exception?.ToString() ?? msg.Message);
+            var message = $"{DateTime.UtcNow:MM/dd/yyyy HH:mm:ss} [{msg.Severity.ToString()}] {msg.Source}: {msg.Exception?.ToString() ?? msg.Message}\n";
             File.AppendAllText(Program.LogFile, message);
             return Console.Out.WriteAsync(message);
         }

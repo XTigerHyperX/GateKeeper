@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using System.IO;
+﻿using System.IO;
+using Newtonsoft.Json;
 
-namespace src
+namespace Gatekeeper
 {
     public static class ConfigExtensions
     {
@@ -11,7 +11,7 @@ namespace src
         }
     }
 
-    public partial class JsonConfig
+    public class JsonConfig
     {
         public string BotToken;
         public string BotPrefix;
@@ -21,7 +21,7 @@ namespace src
         public Verifier Verifier;
     }
 
-    public partial class Verifier
+    public class Verifier
     {
         public ulong ChannelId;
         public ulong MessageId;

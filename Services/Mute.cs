@@ -2,13 +2,13 @@
 using Discord;
 using Discord.WebSocket;
 
-namespace src.Services
+namespace Gatekeeper.Services
 {
     public class Mute
     {
         public SocketGuild Guild;
-        public SocketGuildUser user;
-        public IRole role;
+        public SocketGuildUser User;
+        public IRole Role;
         public DateTime End;
     }
 }
