@@ -280,13 +280,12 @@ namespace Gatekeeper.Modules
 
         #endregion
 
-        [RequireUserPermission(GuildPermission.KickMembers, ErrorMessage = "I can't do that")]
+        [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "I can't do that")]
         [Command("mute")]
         public async Task Mute(SocketGuildUser user = null, int? minutes = null, [Remainder] string reason = null)
         {
             if (Context.Message.MentionedUsers.Any() && Context.Message.MentionedUsers.First() is SocketGuildUser u)
                 user = u;
-
             if (user == null)
             {
                 await ReplyAsync(embed: new EmbedBuilder
@@ -355,7 +354,7 @@ namespace Gatekeeper.Modules
                 }
 
                 reason ??= "Unspecified";
-                minutes ??= 0;
+                minutes ??= 5;
                 Startup.Mutes.Add(new Mute
                 {
                     Guild = Context.Guild,
@@ -387,7 +386,7 @@ namespace Gatekeeper.Modules
                         new EmbedFieldBuilder
                         {
                             Name = "Duration",
-                            Value = minutes == 0 ? "Unspecified" : minutes.ToString(),
+                            Value = minutes == 0 ? "5 minutes" : minutes.ToString() + " minutes",
                             IsInline = true
                         },
                         new EmbedFieldBuilder
@@ -420,7 +419,7 @@ namespace Gatekeeper.Modules
                         new EmbedFieldBuilder
                         {
                             Name = "Duration",
-                            Value = minutes == 0 ? "Unspecified" : minutes.ToString(),
+                            Value = minutes == 0 ? "5 minutes" : minutes.ToString(),
                             IsInline = true
                         },
                         new EmbedFieldBuilder
@@ -456,7 +455,7 @@ namespace Gatekeeper.Modules
         }
         */
 
-        [RequireUserPermission(GuildPermission.KickMembers)]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("unmute")]
         public async Task Unmute(SocketGuildUser user = null)
         {
@@ -556,7 +555,7 @@ namespace Gatekeeper.Modules
             }
         }
 
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
         [Command("alive?")]
         public async Task Alive()
         {
@@ -582,5 +581,28 @@ namespace Gatekeeper.Modules
                 }
             }.Build());
         }
+
+        [RequireUserPermission(GuildPermission.Administrator)]
+        [Command("roles")]
+        public async Task roles()
+        {
+            await ReplyAsync(embed: new EmbedBuilder
+            {
+                Title = "Roles",
+                Color = new Color(23, 56, 94),
+                Description = "<@&681940481227358246> : **uhm it's just tiger** \n <@&833185868373164112> : **FModel Team are also Admins** \n " +
+                              "<@&833188276659552296> : **Moderators of this server** \n <@&835318700169101312> : **Chat managers** \n <@&833354570238656512>" +
+                              " : **usually goes to people that support this server / tiger a lot** \n\n" +
+                              " <@&682261115732099273> <@&833171548147679234> <@&833378385077469255> <@&833184878651506698> <@&681940799059132417> : **don't ask for these roles , tiger knows who can have them** \n",
+                Footer = new EmbedFooterBuilder
+                {
+                    Text = "Gatekeeper",
+                    IconUrl = "https://imgur.com/rVB8XsP.png"
+                }
+                              
+            }.Build());
+
+        }
+
     }
 }

@@ -166,6 +166,7 @@ namespace Gatekeeper.Services
                 _config.Verifier.Code = decrypted;
                 _config.Save();
             }
+            /*
 
             if (arg.MentionedUsers.Any() && arg.Author is SocketGuildUser {IsBot: false} sender)
             {
@@ -247,6 +248,7 @@ namespace Gatekeeper.Services
                     }.Build());
                 }
             }
+            */
         }
     }
 }
