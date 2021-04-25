@@ -302,7 +302,7 @@ namespace Gatekeeper.Modules
                 return;
             }
 
-            if (user.Hierarchy > Context.Guild.CurrentUser.Hierarchy)
+            if (user.Hierarchy > Context.Guild.CurrentUser.Hierarchy || user.Hierarchy == Context.Guild.CurrentUser.Hierarchy || user.Id == Context.Message.Author.Id)
             {
                 await ReplyAsync(embed: new EmbedBuilder
                 {
@@ -603,6 +603,34 @@ namespace Gatekeeper.Modules
             }.Build());
 
         }
+        [RequireUserPermission(GuildPermission.Administrator)]
+        [Command("update")]
+        public async Task update()
+        {
+            string k = await File.ReadAllTextAsync(@"C:\Users\XTigerHyperX\Desktop\Gatekeeper-main\Rules.txt");
+            var ss = (await Context.Channel.GetMessageAsync(833953122975219744) as IUserMessage);
+            var EmbedBuilder = new EmbedBuilder
+            {
+                Title = "Welcome to The Tiger's Den",
+                Description = await File.ReadAllTextAsync(@"C:\Users\XTigerHyperX\Desktop\Gatekeeper-main\Rules.txt"),
+                Color = new Color(36, 63, 115),
+                Footer = new EmbedFooterBuilder
+                {
+                    Text = "Gatekeeper",
+                    IconUrl = "https://i.imgur.com/rVB8XsP.png"
+                }
+            };
+            Embed embed = EmbedBuilder.Build();           
+            await ss.ModifyAsync(msg => msg.Embed = embed);
+        }
 
+        [RequireUserPermission(GuildPermission.Administrator)]
+        [Command("warn")]
+        public async Task warn(SocketGuildUser user = null, [Remainder] string reason = null)
+        {
+            var tst = await user.SendMessageAsync("you have been warned for : " + reason);
+            await ReplyAsync("the user have been warned <:Gatekeeper:833756060032303174> ");
+        }
+        
     }
 }
