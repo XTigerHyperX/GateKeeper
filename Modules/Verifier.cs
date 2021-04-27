@@ -632,5 +632,34 @@ namespace Gatekeeper.Modules
             await ReplyAsync("the user have been warned <:Gatekeeper:833756060032303174> ");
         }
         
+        [RequireUserPermission(GuildPermission.Administrator , ErrorMessage = "No")]
+        [Command("remove")]
+        public async Task remove(IRole role = null , SocketGuildUser user = null)
+        {
+            if (user == null) {await ReplyAsync("Specify a user"); return;}
+            if (role == null) {await ReplyAsync("Specify a role"); return;}
+            
+            if (user.Roles.Contains(role))
+            {
+                await user.RemoveRoleAsync(role);
+                await ReplyAsync("role removed");
+            }
+            else await ReplyAsync("user doesn't have this role");
+        }
+        
+        [RequireUserPermission(GuildPermission.Administrator,ErrorMessage = "No")]
+        [Command("add")]
+        public async Task add(SocketRole role = null , SocketGuildUser user = null)
+        {
+            if (user == null) {await ReplyAsync("Specify a user"); return;}
+            if (role == null) {await ReplyAsync("Specify a role"); return;}
+
+            if (!user.Roles.Contains(role))
+            {
+                await user.AddRoleAsync(role);
+                await ReplyAsync("added role");
+            }
+            else await ReplyAsync("User already has the role");
+        }
     }
 }
