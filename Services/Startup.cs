@@ -128,6 +128,8 @@ namespace Gatekeeper.Services
             {
                 await arg.DeleteAsync();
                 await author.AddRoleAsync(channel.Guild.Roles.FirstOrDefault(x => x.Id == _config.RoleId));
+                //await channel.Guild.GetTextChannel(_config.LogChannelId).SendMessageAsync(string.Format("{0}#{1} ({2}) verified successfully with code `{3}`", arg.Author.Username, arg.Author.Discriminator, arg.Author.Id, _config.Verifier.Code));
+                 #region embed
                 await channel.Guild.GetTextChannel(_config.LogChannelId).SendMessageAsync(embed: new EmbedBuilder
                 {
                     Title = "User Verified",
@@ -148,6 +150,7 @@ namespace Gatekeeper.Services
                         }
                     }
                 }.Build());
+                #endregion
 
                 var (encrypted, decrypted) = Utils.GeneratePasteProofString();
 

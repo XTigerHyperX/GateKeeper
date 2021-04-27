@@ -571,10 +571,10 @@ namespace Gatekeeper.Modules
                 Title = "Help",
                 Color = new Color(23, 56, 94),
                 Description = "The Prefix for Gatekeeper is `.` \n " +
-                              "**ban** \n bye <:PepeHappy:833198633025273856> \n **unban** \n unbans user \n **kick** \n kicks user" +
-                              "\n **mute** \n provide user and add minutes and reason if needed \n **unmute** \n unmutes user " +
-                              "\n **alive?** \n to check bot presence \n **rules** \n my favorite part <:Gatekeeper:833756060032303174> \n **help** \n provides help commands " +
-                              "\n **roles** \n check roles info \n **warn** \n warn user \n **add | remove** \n add and remove roles for user \n",
+                              "**ban** : bye <:PepeHappy:833198633025273856> \n **unban** : unbans user \n **kick** : kicks user" +
+                              "\n **mute** : provide user and add minutes and reason if needed \n **unmute** : unmutes user " +
+                              "\n **alive?** : to check bot presence \n **rules** : my favorite part <:Gatekeeper:833756060032303174> \n **help** : provides help commands " +
+                              "\n **roles** : check roles info \n **warn** : warn user \n **add | remove** : add and remove roles for user \n **update** : update rules in ReadmeRules \n ",
                 Footer = new EmbedFooterBuilder
                 {
                     Text = "Gatekeeper",
@@ -600,9 +600,7 @@ namespace Gatekeeper.Modules
                     Text = "Gatekeeper",
                     IconUrl = "https://imgur.com/rVB8XsP.png"
                 }
-                              
             }.Build());
-
         }
         [RequireUserPermission(GuildPermission.Administrator)]
         [Command("update")]
@@ -631,6 +629,34 @@ namespace Gatekeeper.Modules
         {
             var tst = await user.SendMessageAsync("you have been warned for : " + reason);
             await ReplyAsync("the user have been warned <:Gatekeeper:833756060032303174> ");
+            #region embed
+            await Context.Guild.GetTextChannel(833395565214957578).SendMessageAsync(embed: new EmbedBuilder // Log
+            {
+                Title = "User Warned",
+                Color = Color.Red,
+                Fields = new List<EmbedFieldBuilder>
+                {
+                    new EmbedFieldBuilder
+                    {
+                        Name = "Warned User",
+                        Value = $"{user.Username}#{user.Discriminator} ({user.Id})",
+                        IsInline = true
+                    },
+                    new EmbedFieldBuilder
+                    {
+                        Name = "Staff Member",
+                        Value = $"{Context.User.Username}#{Context.User.Discriminator} ({Context.User.Id})",
+                        IsInline = true
+                    },
+                    new EmbedFieldBuilder
+                    {
+                        Name = "Reason",
+                        Value = reason,
+                        IsInline = false
+                    }
+                }
+            }.Build());
+            #endregion 
         }
         
         [RequireUserPermission(GuildPermission.Administrator , ErrorMessage = "No")]
@@ -643,14 +669,55 @@ namespace Gatekeeper.Modules
             if (user.Roles.Contains(role))
             {
                 await user.RemoveRoleAsync(role);
-                await ReplyAsync("role removed");
+                //await ReplyAsync($"removed role <@&{role.Id}> from {user.Username}");
+                //await Context.Guild.GetTextChannel(833395565214957578).SendMessageAsync($"{Context.User.Username} removed role <@&{role.Id}> to {user.Username}");
+                #region embed
+                await ReplyAsync(embed: new EmbedBuilder
+                {
+                    Title = "Removed role",
+                    Description = $"removed role <@&{role.Id}> from {user.Username}",
+                    Color = new Color(36, 63, 115),
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = "Gatekeeper",
+                        IconUrl = "https://i.imgur.com/rVB8XsP.png"
+                    }
+                }.Build());
+                
+                await Context.Guild.GetTextChannel(833395565214957578).SendMessageAsync(embed: new EmbedBuilder // Log
+                {
+                    Title = "Removed role from user",
+                    Color = Color.Green,
+                    Fields = new List<EmbedFieldBuilder>
+                    {
+                        new EmbedFieldBuilder
+                        {
+                            Name = "User",
+                            Value = $"{user.Username}#{user.Discriminator} ({user.Id})",
+                            IsInline = true
+                        },
+                        new EmbedFieldBuilder
+                        {
+                            Name = "Staff Member",
+                            Value = $"{Context.User.Username}#{Context.User.Discriminator} ({Context.User.Id})",
+                            IsInline = true
+                        },
+                        new EmbedFieldBuilder
+                        {
+                            Name = "Role",
+                            Value = $"<@&{role.Id}>",
+                            IsInline = false
+                        }
+                    }
+                }.Build());
+                #endregion
             }
             else await ReplyAsync("user doesn't have this role");
         }
         
         [RequireUserPermission(GuildPermission.Administrator,ErrorMessage = "No")]
-        [Command("add")]
-        public async Task add(SocketRole role = null , SocketGuildUser user = null)
+        [Command("give")]
+        public async Task give(SocketRole role = null , SocketGuildUser user = null)
         {
             if (user == null) {await ReplyAsync("Specify a user"); return;}
             if (role == null) {await ReplyAsync("Specify a role"); return;}
@@ -658,7 +725,48 @@ namespace Gatekeeper.Modules
             if (!user.Roles.Contains(role))
             {
                 await user.AddRoleAsync(role);
-                await ReplyAsync("added role");
+                //await ReplyAsync($"added role <@&{role.Id}> to {user.Username}");
+                //await Context.Guild.GetTextChannel(833395565214957578).SendMessageAsync($"{Context.User.Username} added role <@&{role.Id}> to {user.Username}");
+                #region embed
+                await ReplyAsync(embed: new EmbedBuilder
+                {
+                    Title = "Removed role",
+                    Description = $"added role <@&{role.Id}> to {user.Username}",
+                    Color = new Color(36, 63, 115),
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = "Gatekeeper",
+                        IconUrl = "https://i.imgur.com/rVB8XsP.png"
+                    }
+                }.Build());
+                
+                await Context.Guild.GetTextChannel(833395565214957578).SendMessageAsync(embed: new EmbedBuilder // Log
+                {
+                    Title = "Added role to user",
+                    Color = Color.Green,
+                    Fields = new List<EmbedFieldBuilder>
+                    {
+                        new EmbedFieldBuilder
+                        {
+                            Name = "User",
+                            Value = $"{user.Username}#{user.Discriminator} ({user.Id})",
+                            IsInline = true
+                        },
+                        new EmbedFieldBuilder
+                        {
+                            Name = "Staff Member",
+                            Value = $"{Context.User.Username}#{Context.User.Discriminator} ({Context.User.Id})",
+                            IsInline = true
+                        },
+                        new EmbedFieldBuilder
+                        {
+                            Name = "Role",
+                            Value = $"<@&{role.Id}>",
+                            IsInline = false
+                        }
+                    }
+                }.Build());
+                #endregion
             }
             else await ReplyAsync("User already has the role");
         }
