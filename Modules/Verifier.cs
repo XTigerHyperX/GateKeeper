@@ -562,7 +562,7 @@ namespace Gatekeeper.Modules
             await ReplyAsync("I'm alive and reporting for duty! <:Gatekeeper:833756060032303174>");
         }
 
-        [RequireUserPermission(GuildPermission.SendMessages)]
+        [RequireUserPermission(GuildPermission.ManageChannels)]
         [Command("help")]
         public async Task Help()
         {
@@ -573,7 +573,8 @@ namespace Gatekeeper.Modules
                 Description = "The Prefix for Gatekeeper is `.` \n " +
                               "**ban** \n bye <:PepeHappy:833198633025273856> \n **unban** \n unbans user \n **kick** \n kicks user" +
                               "\n **mute** \n provide user and add minutes and reason if needed \n **unmute** \n unmutes user " +
-                              "\n **alive** \n to check bot presence \n **rules** \n my favorite part <:Gatekeeper:833756060032303174> \n **help** \n provides help commands",
+                              "\n **alive?** \n to check bot presence \n **rules** \n my favorite part <:Gatekeeper:833756060032303174> \n **help** \n provides help commands " +
+                              "\n **roles** \n check roles info \n **warn** \n warn user \n **add | remove** \n add and remove roles for user \n",
                 Footer = new EmbedFooterBuilder
                 {
                     Text = "Gatekeeper",
