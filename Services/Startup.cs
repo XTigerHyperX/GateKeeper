@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Gatekeeper.Modules;
+using src.Modules;
 
 namespace Gatekeeper.Services
 {
@@ -124,134 +125,49 @@ namespace Gatekeeper.Services
 
         private async Task OnDiscordMessageReceived(SocketMessage arg)
         {
-            if (arg.Channel is SocketGuildChannel channel && arg.Author is IGuildUser author && channel.Guild.Id == _config.ServerId && channel.Id == _config.Verifier.ChannelId && !arg.Author.IsBot)
+            if ((arg.Channel as SocketGuildChannel).Guild.Id == _config.ServerId && arg.Channel.Id == _config.Verifier.ChannelId && !arg.Author.IsBot)
             {
                 await arg.DeleteAsync();
-                await author.AddRoleAsync(channel.Guild.Roles.FirstOrDefault(x => x.Id == _config.RoleId));
-                //await channel.Guild.GetTextChannel(_config.LogChannelId).SendMessageAsync(string.Format("{0}#{1} ({2}) verified successfully with code `{3}`", arg.Author.Username, arg.Author.Discriminator, arg.Author.Id, _config.Verifier.Code));
-                 #region embed
-                await channel.Guild.GetTextChannel(_config.LogChannelId).SendMessageAsync(embed: new EmbedBuilder
+                if (Utils.VerifyPasteProofString(_config.Verifier.Code, arg.Content))
                 {
-                    Title = "User Verified",
-                    Color = Color.Green,
-                    Fields = new List<EmbedFieldBuilder>
+                    await (arg.Author as IGuildUser).AddRoleAsync((arg.Channel as SocketGuildChannel).Guild.Roles.FirstOrDefault(x => x.Id == _config.RoleId));
+                    if ((arg.Channel as SocketGuildChannel).Guild.GetTextChannel(_config.LogChannelId) is SocketTextChannel c)
                     {
-                        new EmbedFieldBuilder
+                        await c.SendMessageAsync(embed: new EmbedBuilder
                         {
-                            Name = "User Verified",
-                            Value = $"{author.Username}#{author.Discriminator} ({author.Id})",
-                            IsInline = true
-                        },
-                        new EmbedFieldBuilder
-                        {
-                            Name = "Code Used",
-                            Value = _config.Verifier.Code,
-                            IsInline = true
-                        }
+                            Title = "User Verified",
+                            Color = Color.Green,
+                            Fields = new List<EmbedFieldBuilder>
+                            {new EmbedFieldBuilder
+                                {
+                                    Name = "User Verified",
+                                    Value = $"{arg.Author.Username}#{arg.Author.Discriminator} ({arg.Author.Id})",
+                                    IsInline = true
+                                },
+                                new EmbedFieldBuilder
+                                {
+                                    Name = "Code Used",
+                                    Value = _config.Verifier.Code,
+                                    IsInline = true
+                                }
+                            }
+                        }.Build());
                     }
-                }.Build());
-                #endregion
+                    (string encrypted, string decrypted) = Utils.GeneratePasteProofString();
+                    var messageToEdit = await arg.Channel.GetMessageAsync(_config.Verifier.MessageId) as IUserMessage;
 
-                var (encrypted, decrypted) = Utils.GeneratePasteProofString();
-
-                if (await arg.Channel.GetMessageAsync(_config.Verifier.MessageId) is IUserMessage message)
-                {
-                    await message.ModifyAsync(x =>
+                    await messageToEdit!.ModifyAsync(x =>
                     {
-                        x.Embed = new EmbedBuilder
+                        x.Embed = new EmbedBuilder()
                         {
-                            Description = $"To access the rest of the server, please type without copy pasting and with capitalization on:\n```fix\n{encrypted}\n```",
+                            Description = $"To access the rest of the server, please type without copy pasting with Caps on :\n```fix\n{encrypted}\n```",
                             Color = new Color(250, 193, 27)
                         }.Build();
                     });
-                }
-
-                _config.Verifier.Code = decrypted;
-                _config.Save();
-            }
-            /*
-
-            if (arg.MentionedUsers.Any() && arg.Author is SocketGuildUser {IsBot: false} sender)
-            {
-                var users = arg.MentionedUsers;
-
-                foreach (var u in users)
-                {
-                    if (!(u is SocketGuildUser user)) continue;
-                    if (user.Roles.All(r => r.Id != 834473395135184948) || sender.Hierarchy >= user.Hierarchy) continue;
-                    await sender.AddRoleAsync(sender.Guild.GetRole(833192988300804177));
-
-                    if (!(arg.Channel is SocketGuildChannel c)) continue;
-                    await arg.Channel.SendMessageAsync(embed: new EmbedBuilder // Channel user is currently in
-                    {
-                        Title = "User Muted",
-                        Description = "Automod",
-                        Color = Color.Red,
-                        Fields = new List<EmbedFieldBuilder>
-                        {
-                            new EmbedFieldBuilder
-                            {
-                                Name = "User",
-                                Value = $"{sender.Username}#{sender.Discriminator} ({sender.Id})",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Staff Member",
-                                Value = "Gatekeeper",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Duration",
-                                Value = "5 minutes",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Reason",
-                                Value = "Pinging for no reason",
-                                IsInline = false
-                            }
-                        }
-                    }.Build());
-
-                    await c.Guild.GetTextChannel(833395565214957578).SendMessageAsync(embed: new EmbedBuilder // Log
-                    {
-                        Title = "User Muted",
-                        Description = "Automod",
-                        Color = Color.Red,
-                        Fields = new List<EmbedFieldBuilder>
-                        {
-                            new EmbedFieldBuilder
-                            {
-                                Name = "User",
-                                Value = $"{sender.Username}#{sender.Discriminator} ({sender.Id})",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Staff Member",
-                                Value = "Gatekeeper",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Duration",
-                                Value = "5 minutes",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Reason",
-                                Value = "Pinging for no reason",
-                                IsInline = false
-                            }
-                        }
-                    }.Build());
+                    _config.Verifier.Code = decrypted;
+                    _config.Save();
                 }
             }
-            */
         }
     }
 }

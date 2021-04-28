@@ -7,6 +7,7 @@ using Discord.Commands;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Gatekeeper.Services;
+using src.Modules;
 
 namespace Gatekeeper.Modules
 {
@@ -621,6 +622,7 @@ namespace Gatekeeper.Modules
             };
             Embed embed = EmbedBuilder.Build();           
             await ss.ModifyAsync(msg => msg.Embed = embed);
+
         }
 
         [RequireUserPermission(GuildPermission.Administrator)]
@@ -717,7 +719,7 @@ namespace Gatekeeper.Modules
         
         [RequireUserPermission(GuildPermission.Administrator,ErrorMessage = "No")]
         [Command("give")]
-        public async Task give(SocketRole role = null , SocketGuildUser user = null)
+        public async Task give(SocketRole role = null ,SocketGuildUser user = null)
         {
             if (user == null) {await ReplyAsync("Specify a user"); return;}
             if (role == null) {await ReplyAsync("Specify a role"); return;}
