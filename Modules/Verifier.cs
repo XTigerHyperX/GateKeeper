@@ -48,7 +48,7 @@ namespace Gatekeeper.Modules
 
         [RequireUserPermission(GuildPermission.BanMembers, ErrorMessage = "No")]
         [Command("ban")]
-        public async Task Ban(IGuildUser user = null, [Remainder] string reason = null)
+        public async Task Ban(IUser user = null, [Remainder] string reason = null)
         {
             if (user == null)
             {
@@ -67,7 +67,8 @@ namespace Gatekeeper.Modules
             }
 
             reason ??= "Unspecified";
-            await Context.Guild.AddBanAsync(user, 1, reason);
+            
+            await Context.Guild.AddBanAsync(user, 0, reason);
             await ReplyAsync(embed: new EmbedBuilder
             {
                 Title = "User Banned",
@@ -143,7 +144,7 @@ namespace Gatekeeper.Modules
                     new EmbedFieldBuilder
                     {
                         Name = "User",
-                        Value = $"{user.Username}#{user.Discriminator} ({user.Id})",
+                        Value = $"{userId}",
                         IsInline = true
                     },
                     new EmbedFieldBuilder
@@ -164,7 +165,7 @@ namespace Gatekeeper.Modules
                     new EmbedFieldBuilder
                     {
                         Name = "User",
-                        Value = $"{user.Username}#{user.Discriminator} ({user.Id})",
+                        Value = $"{userId}",
                         IsInline = true
                     },
                     new EmbedFieldBuilder
