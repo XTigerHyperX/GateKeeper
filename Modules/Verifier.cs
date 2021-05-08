@@ -284,7 +284,7 @@ namespace Gatekeeper.Modules
 
         [RequireUserPermission(GuildPermission.ManageMessages, ErrorMessage = "I can't do that")]
         [Command("mute")]
-        public async Task Mute(SocketGuildUser user = null, int? minutes = null, [Remainder] string reason = null)
+        public async Task Mute(SocketGuildUser user = null, int? minutes = null, string ext = null, [Remainder] string reason = null)
         {
             if (Context.Message.MentionedUsers.Any() && Context.Message.MentionedUsers.First() is SocketGuildUser u)
                 user = u;
@@ -354,17 +354,47 @@ namespace Gatekeeper.Modules
                     }.Build());
                     return;
                 }
-
-                reason ??= "Unspecified";
-                minutes ??= 5;
-                Startup.Mutes.Add(new Mute
+                string extension = null;
+                if (ext.ToUpper() == "M"|| ext == null)
                 {
-                    Guild = Context.Guild,
-                    User = user,
-                    End = DateTime.Now + TimeSpan.FromMinutes((int) minutes),
-                    Role = role
-                });
-
+                    reason ??= "Unspecified";
+                    minutes ??= 5;
+                    Startup.Mutes.Add(new Mute
+                    {
+                        Guild = Context.Guild,
+                        User = user,
+                        End = DateTime.Now + TimeSpan.FromMinutes((int) minutes),
+                        Role = role
+                    });
+                    extension = "Minutes";
+                }
+                
+                if (ext.ToUpper() == "H")
+                {
+                    reason ??= "Unspecified";
+                    Startup.Mutes.Add(new Mute
+                    {
+                        Guild = Context.Guild,
+                        User = user,
+                        End = DateTime.Now + TimeSpan.FromHours((int) minutes!),
+                        Role = role
+                    });
+                    extension = "Hours";
+                }
+                
+                else if (ext.ToUpper() == "D")
+                {
+                    reason ??= "Unspecified";
+                    Startup.Mutes.Add(new Mute
+                    {
+                        Guild = Context.Guild,
+                        User = user,
+                        End = DateTime.Now + TimeSpan.FromDays((int) minutes!),
+                        Role = role
+                    });
+                    extension = "Days";
+                }
+                
                 await user.AddRoleAsync(role);
 
                 await ReplyAsync(embed: new EmbedBuilder
@@ -388,7 +418,7 @@ namespace Gatekeeper.Modules
                         new EmbedFieldBuilder
                         {
                             Name = "Duration",
-                            Value = minutes == 0 ? "5 minutes" : minutes.ToString() + " minutes",
+                            Value = minutes == 0 ? "5 minutes" : minutes.ToString() + " " +extension,
                             IsInline = true
                         },
                         new EmbedFieldBuilder
@@ -421,7 +451,7 @@ namespace Gatekeeper.Modules
                         new EmbedFieldBuilder
                         {
                             Name = "Duration",
-                            Value = minutes == 0 ? "5 minutes" : minutes.ToString(),
+                            Value = minutes == 0 ? "5 minutes" : minutes.ToString() + " " + extension,
                             IsInline = true
                         },
                         new EmbedFieldBuilder
@@ -585,7 +615,7 @@ namespace Gatekeeper.Modules
             }.Build());
         }
 
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(GuildPermission.SendMessages)]
         [Command("roles")]
         public async Task roles()
         {
@@ -772,6 +802,18 @@ namespace Gatekeeper.Modules
                 #endregion
             }
             else await ReplyAsync("User already has the role");
+        }
+
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "No")]
+        [Command("delete")]
+        public async Task delete(SocketMessage message = null)
+        {
+            var s = Context.Message;
+            await message.DeleteAsync();
+            var ms = await ReplyAsync("Deleted");
+            await Task.Delay(2000);
+            await ms.DeleteAsync();
+            await s.DeleteAsync();
         }
     }
 }
